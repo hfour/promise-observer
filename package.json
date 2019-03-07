@@ -1,13 +1,12 @@
 {
-  "name": "promise-observer",
+  "name": "promisemitter",
   "version": "1.0.13",
   "description": "An observer / event emitter implementation with promise support",
   "main": "lib/index.js",
   "scripts": {
-    "build": "npm run build-js && npm run build-defs",
+    "build": "tsc",
     "build-js": "tsc",
-    "build-defs": "dts-generator --name promise-observer --baseDir ./src --out d.ts/promise-observer.d.ts --main promise-observer/index ./src/index.ts",
-    "test": "tape test/*.js"
+    "test": "jest"
   },
   "keywords": [
     "promise",
@@ -19,21 +18,25 @@
   "author": "spion",
   "license": "MIT",
   "devDependencies": {
-    "blue-tape": "^0.1.8",
-    "dts-generator": "^1.5.0"
+    "@types/jest": "^24.0.9",
+    "@types/node": "^11.10.5",
+    "jest": "^24.1.0",
+    "ts-jest": "^24.0.0",
+    "typescript": "^3.3.3333"
   },
   "directories": {
     "test": "test"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/doxout/promise-observer.git"
+    "url": "https://github.com/hfour/promise-observer.git"
   },
   "bugs": {
-    "url": "https://github.com/doxout/promise-observer/issues"
+    "url": "https://github.com/hfour/promise-observer/issues"
   },
-  "homepage": "https://github.com/doxout/promise-observer",
-  "dependencies": {
-    "bluebird": "^2.3.11"
+  "homepage": "https://github.com/hfour/promise-observer",
+  "jest": {
+    "preset": "ts-jest",
+    "testPathIgnorePatterns":["node_modules", "lib"]
   }
 }

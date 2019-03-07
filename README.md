@@ -1,4 +1,4 @@
-# promise-observer
+# promisemitter
 
 An observer implementation with promise support.
 
@@ -13,29 +13,31 @@ Given a blog post creator:
 
 ```typescript
 import po = require('promise-observer')
-function BlogPostCreator() {
-    this.onCreated = po.create(emit => this.emit = emit);
-}
-BlogPostCreator.prototype.create = function(blogPost) {
-    actuallyCreateBlogpost()
-        .then(post => this.emit(post))
+
+class BlogPostCreator {
+    postCreated = po.create();
+
+    create(blogPost) {
+      actuallyCreateBlogpost()
+        .then(post => this.postCreated.emit(post))
         // wait for all attached events to complete before commiting.
         .then(commitTransaction);
+    }
 }
+
 ```
 
 a categorizer can attach to its events
 
-
 ```typescript
-onPostCategorized = blogPostCreator.onCreated(post =>
+postCategorized = blogPostCreator.postCreated.subscribe(post =>
   categorize(post).then(saveCategory).thenReturn(post));
 ```
 
 an indexer can add search terms to the index for that post
 
 ```typescript
-onPostIndexed = blogPostCreator.onCreated(post =>
+postIndexed = blogPostCreator.postCreated.subscribe(post =>
   index(post).then(saveIndex).thenReturn(post));
 ```
 
@@ -43,9 +45,9 @@ Then, the email notification system can wait for the post to be
 categorized and indexed before sending a notification to all subscribers:
 
 ```typescript
-onPostNotification = blogPostCreator.onCreated(post => {
-  var categorized = onPostCategorized.next(categorizedPost => categorizedPost.id == post.id);
-  var indexed = onPostIndexed.next(indexedPost => indexedPost.id == post.id);
+onPostNotification = blogPostCreator.postCreated.subscribe(post => {
+  var categorized = postCategorized.next(categorizedPost => categorizedPost.id == post.id);
+  var indexed = postIndexed.next(indexedPost => indexedPost.id == post.id);
   return Promise.join(categorized, indexed, _ => sendEmailNotification(post))
 });
 ```
@@ -53,19 +55,30 @@ onPostNotification = blogPostCreator.onCreated(post => {
 # API
 
 
-### po.create(emit):Observable
+### po.create():Emitter
 
-`po.create(emit: (val:T) => Promise<void>):Observable<T>`
+`po.create<T>():Emitter<T>`
 
-Creates a new observable. The observable exposes its emit function through the
-revealing constructor pattern. Use the emit function to notify all subscribers
-of new events.
+Creates a new emitter. The emitter contains emit and subscribe methods. The subscribe method
+is also an `Observable<T>`
+
+
+```typescript
+interface Emitter<T> {
+    emit(t: T): Promise<void>;
+    subscribe: Observable<T>;
+}
+```
+
+Use the emit method to notify all subscribers of new events.
 
 The emit function returns a promise that resolves when all subscribers and
 their dependents finish processing the event.
 
-
 ### Observable<T>
+
+The observable is a the part of the emitter where consumers can attach and remove event
+subscriptions, without being able to emit new events.
 
 ```typescript
 interface Observable<T> {
@@ -76,33 +89,28 @@ interface Observable<T> {
 }
 ```
 
-#### observable(listener):LinkedObservable
+#### observer(listener):LinkedObservable
 
-Creates a listener for the observable. A listener is a mapping function that returns
+Creates a listener for the observer. A listener is a mapping function that returns
 either a new value or a promise.
 
 Returns a linked observable  that emits whenever the returned  promises or values
 resolve.
 
-#### observable.next(predicate?):Promise
+#### observer.next(predicate?):Promise
 
 Waits for the next event that satisfies the specified predicate. Returns a
 promise for the value contained in that event.
 
 The predicate is optional.
 
-#### observable.remove(linkedObservable)
+#### observer.remove(linkedObservable)
 
 Removes a listener (linked observable).
 
 ### linkedObservable.unlink()
 
 Same as `parentObservable.remove(linkedObservable)`
-
-# Building
-
-    npm install
-    npm run build
 
 # License
 
