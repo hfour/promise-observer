@@ -3,7 +3,7 @@
         "module": "commonjs",
         "noImplicitAny": true,
         "strict":true,
-        "outDir": "lib/",
+        "outDir": "build/",
         "sourceMap": true,
         "target": "es5",
         "lib": ["es2015"],
